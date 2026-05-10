@@ -69,7 +69,7 @@ body {
 
 .logout-btn {
     padding: 8px 15px;
-    background: #ff4757;
+    background: #008b8b;
     color: white;
     text-decoration: none;
     border-radius: 5px;
@@ -78,7 +78,8 @@ body {
 }
 
 .logout-btn:hover {
-    background: #e04050;
+    background: #007070;
+;
 }
 
 /* =========================================

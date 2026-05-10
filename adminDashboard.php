@@ -1,15 +1,7 @@
 <?php
 session_start();
-
-// Jika belum login, tendang balik ke login.php
-if (!isset($_SESSION['userid'])) {
-    header("Location: login.php");
-    exit();
-}
-
-// (Optional) Jika student cuba masuk page admin
-if ($_SESSION['role'] !== 'admin' && basename($_SERVER['PHP_SELF']) == 'adminDashboard.php') {
-    header("Location: dashboardSwitcher.php");
+if ($_SESSION['type'] !== 'admin') {
+    header("Location: login.php"); // Tendang kalau bukan admin
     exit();
 }
 ?>

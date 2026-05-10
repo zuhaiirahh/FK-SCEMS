@@ -1,15 +1,8 @@
 <?php
 session_start();
-
-// Jika belum login, tendang balik ke login.php
-if (!isset($_SESSION['userid'])) {
+// Student dan Committee dua-dua boleh masuk sini
+if ($_SESSION['type'] !== 'student' && $_SESSION['type'] !== 'committee') {
     header("Location: login.php");
-    exit();
-}
-
-// (Optional) Jika student cuba masuk page admin
-if ($_SESSION['role'] !== 'admin' && basename($_SERVER['PHP_SELF']) == 'adminDashboard.php') {
-    header("Location: dashboardSwitcher.php");
     exit();
 }
 ?>
@@ -35,7 +28,8 @@ if ($_SESSION['role'] !== 'admin' && basename($_SERVER['PHP_SELF']) == 'adminDas
         <div class="header-right">
             <div class="user-info">
                 <span class="user-name"><?php echo $_SESSION['name']; ?></span>
-                <span class="user-role">Student</span>
+                <span class="user-role">
+                    Student</span>
             </div>
             <a href="login.php" class="logout-btn">Logout</a>
         </div>

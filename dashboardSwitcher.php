@@ -1,3 +1,12 @@
+<?php
+session_start();
+// Student dan Committee dua-dua boleh masuk sini
+if ($_SESSION['type'] !== 'student' && $_SESSION['type'] !== 'committee') {
+    header("Location: login.php");
+    exit();
+}
+?>
+
 <!DOCTYPE html>
 <html lang="ms">
 
@@ -34,7 +43,7 @@
                         </div>
                     </a>
 
-                    <a href="adminDashboard.php" class="switcher-card">
+                    <a href="committeeDashboard.php" class="switcher-card">
                         <div class="card-image-content">
                             <img src="images/committee.png" alt="Committee Icon" class="card-icon-img">
                             <span class="card-label-text">Committee</span>
