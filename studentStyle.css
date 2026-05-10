@@ -1,0 +1,221 @@
+/* =========================================
+   1. GLOBAL & RESET
+   ========================================= */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body.dashboard-body {
+    background-color: #f4f7f6;
+    display: block; /* Menindih flex dari login page */
+}
+
+/* =========================================
+   2. HEADER SECTION
+   ========================================= */
+.main-header {
+    height: 70px;
+    background: #fff;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 30px;
+    border-bottom: 1px solid #ddd;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.mini-logo {
+    height: 45px;
+}
+
+.system-title {
+    font-weight: bold;
+    font-size: 1.2rem;
+    color: #333;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.user-info {
+    text-align: right;
+}
+
+.user-name {
+    display: block;
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+.user-role {
+    font-size: 0.8rem;
+    color: #666;
+}
+
+.logout-btn {
+    padding: 8px 15px;
+    background: #008b8b; /* Warna Teal UMPSA */
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    font-size: 0.85rem;
+    transition: 0.3s ease;
+}
+
+.logout-btn:hover {
+    background: #007070;
+}
+
+/* =========================================
+   3. SIDEBAR NAVIGATION
+   ========================================= */
+.dashboard-wrapper {
+    display: flex;
+    min-height: calc(100vh - 70px);
+}
+
+.sidebar {
+    width: 250px;
+    background: white;
+    border-right: 1px solid #ddd;
+    padding-top: 20px;
+    overflow: hidden;
+    flex-shrink: 0; /* Sidebar tidak akan mengecil */
+}
+
+.sidebar ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.sidebar li a {
+    display: flex;
+    align-items: center;
+    padding: 15px 25px;
+    color: #333;
+    text-decoration: none;
+    width: 100%;
+    box-sizing: border-box;
+    transition: 0.3s ease;
+}
+
+/* State Aktif (Dashboard Biru) */
+.sidebar li.active a {
+    background: #d1eefc; /* Biru muda rapat ke tepi kiri */
+    font-weight: bold;
+    border-left: 5px solid #008b8b; /* Garisan teal di hujung kiri */
+}
+
+.sidebar li a:hover:not(.active) {
+    background: #f0f0f0;
+}
+
+.sidebar i {
+    margin-right: 15px;
+    width: 20px;
+    text-align: center;
+    font-size: 1.1rem;
+}
+
+/* =========================================
+   4. MAIN CONTENT AREA
+   ========================================= */
+.main-content {
+    flex: 1;
+    padding: 30px;
+    overflow-y: auto;
+}
+
+/* Quick Insight Cards */
+.insight-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin: 20px 0 40px 0;
+}
+
+.card {
+    background: white;
+    padding: 25px;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    text-align: center;
+    border: 1px solid #f0f0f0;
+}
+
+.card-title {
+    display: block;
+    color: #666;
+    margin-bottom: 10px;
+    font-size: 0.9rem;
+}
+
+.card-value {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: #008b8b;
+}
+
+/* =========================================
+   5. TABLES & BADGES
+   ========================================= */
+.table-container {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    margin-top: 15px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+table th {
+    text-align: left;
+    padding: 15px 12px;
+    border-bottom: 2px solid #eee;
+    color: #666;
+    font-size: 0.9rem;
+}
+
+table td {
+    padding: 15px 12px;
+    border-bottom: 1px solid #eee;
+    font-size: 0.9rem;
+    color: #444;
+}
+
+/* Status Badges */
+.status-badge {
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: bold;
+}
+
+.complete {
+    background: #e1f7e1;
+    color: #27ae60;
+}
+
+.pending {
+    background: #fff4e5;
+    color: #f39c12;
+}
