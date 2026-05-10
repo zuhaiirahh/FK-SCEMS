@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="ms">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Select Workspace - FK-SCEMS</title>
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
     <div class="container">
@@ -25,14 +27,14 @@
                 <p class="subtitle">You have multiple access levels. Choose one to continue.</p>
 
                 <div class="cards-row">
-                    <a href="studentDashboard.html" class="switcher-card">
+                    <a href="studentDashboard.php" class="switcher-card">
                         <div class="card-image-content">
                             <img src="images/student.png" alt="Student Icon" class="card-icon-img">
                             <span class="card-label-text">Student</span>
                         </div>
                     </a>
 
-                    <a href="#" class="switcher-card">
+                    <a href="adminDashboard.php" class="switcher-card">
                         <div class="card-image-content">
                             <img src="images/committee.png" alt="Committee Icon" class="card-icon-img">
                             <span class="card-label-text">Committee</span>
@@ -46,4 +48,5 @@
     </div>
 
 </body>
+
 </html>

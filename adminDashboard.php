@@ -1,5 +1,22 @@
+<?php
+session_start();
+
+// Jika belum login, tendang balik ke login.php
+if (!isset($_SESSION['userid'])) {
+    header("Location: login.php");
+    exit();
+}
+
+// (Optional) Jika student cuba masuk page admin
+if ($_SESSION['role'] !== 'admin' && basename($_SERVER['PHP_SELF']) == 'adminDashboard.php') {
+    header("Location: dashboardSwitcher.php");
+    exit();
+}
+?>
+
 <!DOCTYPE html>
 <html lang="ms">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +24,7 @@
     <link rel="stylesheet" href="adminStyle.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
+
 <body class="dashboard-body">
 
     <header class="main-header">
@@ -16,10 +34,10 @@
         </div>
         <div class="header-right">
             <div class="user-info">
-                <span class="user-name">Admin Name</span>
+                <span class="user-name"><?php echo $_SESSION['name']; ?></span>
                 <span class="user-role">Administrator</span>
             </div>
-            <a href="login.html" class="logout-btn">Logout</a>
+            <a href="login.php" class="logout-btn">Logout</a>
         </div>
     </header>
 
@@ -162,4 +180,5 @@
     </div>
 
 </body>
+
 </html>
