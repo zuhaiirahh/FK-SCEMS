@@ -85,6 +85,7 @@ if ($_SESSION['type'] !== 'student' && $_SESSION['type'] !== 'committee') {
                                 <td><span class="status-badge complete">Completed</span></td>
                             </tr>
                             <tr>
+                                <td>15 May 2026</td>
                                 <td>Futsal Tournament</td>
                                 <td>Sports</td>
                                 <td><span class="status-badge pending">Upcoming</span></td>
