@@ -39,8 +39,8 @@ if ($_SESSION['type'] !== 'student' && $_SESSION['type'] !== 'committee') {
         <nav class="sidebar">
             <ul>
                 <li class="active"><a href="#"><i class="fas fa-home"></i> Dashboard</a></li>
-                <li><a href="#"><i class="fas fa-users"></i> Clubs</a></li>
-                <li><a href="#"><i class="fas fa-calendar-alt"></i> Events</a></li>
+                <li><a href="myClubRequests.php"><i class="fas fa-users"></i> Clubs</a></li>
+                <li><a href="browseEvents.php"><i class="fas fa-calendar-alt"></i> Events</a></li>
                 <li><a href="#"><i class="fas fa-star"></i> My Merit</a></li>
                 <li><a href="#"><i class="fas fa-user"></i> My Profile</a></li>
             </ul>
