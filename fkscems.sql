@@ -127,6 +127,9 @@ CREATE TABLE `student` (
 
 CREATE TABLE `user` (
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 6f59edc2e8cca6585fce83d74637a0a8b3d12f79
   `userID` int(11) NOT NULL AUTO_INCREMENT,
   `username` varchar(50) NOT NULL,
   `password` varchar(255) NOT NULL,
@@ -145,6 +148,7 @@ CREATE TABLE `user` (
 
 INSERT INTO `user` (`username`, `password`, `name`, `email`, `phoneNumber`, `profilePhoto`, `userType`) VALUES
 ('fkscems01', '$2y$10$OBiPNAADSCRYDI3/8LYw.etWF5ZoJNynStJGsmol8lP1Ddp1LA0GG', 'Ahmad bin Abdullah', 'ahmad.abdullah@umpsa.edu.my', '0123456789', NULL, 'committee');
+<<<<<<< HEAD
 =======
   `userID` int(11) NOT NULL,
   `username` varchar(50) NOT NULL,
@@ -165,11 +169,16 @@ INSERT INTO `user` (`userID`, `username`, `password`, `name`, `email`, `phoneNum
 (7, 'CB24085', '$2y$10$FOuOAVfTLPwqUCx3ro3/5O84rLdKcOs2OkQEUSvJNzWcRAGius3ZC', 'Izatul Sorfina', 'cb24085@adab.umpsa.edu.my', '1110640352', '', 'admin'),
 (10, 'CB24051', '$2y$10$jP2NSE45pRPWm.Sz.e9tKueCeAAFS0AYC91A9Nid5oeBSdeuiugaK', 'Fatehah Syuhadah', 'cb24051@adab.umpsa.edu.my', '01128089177', '', 'committee');
 >>>>>>> 77ae26e78fdd718f5bb828757ee1e5090c042a40
+=======
+>>>>>>> 6f59edc2e8cca6585fce83d74637a0a8b3d12f79
 
 -- --------------------------------------------------------
 
 --
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 6f59edc2e8cca6585fce83d74637a0a8b3d12f79
 -- Table structure for table `event`
 --
 
@@ -203,7 +212,32 @@ CREATE TABLE `event` (
   KEY `idx_event_status` (`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+<<<<<<< HEAD
 =======
+=======
+  `userID` int(11) NOT NULL,
+  `username` varchar(50) NOT NULL,
+  `password` varchar(255) NOT NULL,
+  `name` varchar(150) NOT NULL,
+  `email` varchar(100) NOT NULL,
+  `phoneNumber` varchar(20) NOT NULL,
+  `profilePhoto` varchar(255) NOT NULL,
+  `userType` varchar(20) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `user`
+--
+
+INSERT INTO `user` (`userID`, `username`, `password`, `name`, `email`, `phoneNumber`, `profilePhoto`, `userType`) VALUES
+(3, 'CB24024', '$2y$10$WluVzAg/XmwCXro69fIlj.adcmoYBrjSvH/3/q.mxNixHaONeJ38m', 'Nur Zuhairah', 'cb24024@adab.umpsa.edu.my', '1170208096', '', 'student'),
+(7, 'CB24085', '$2y$10$FOuOAVfTLPwqUCx3ro3/5O84rLdKcOs2OkQEUSvJNzWcRAGius3ZC', 'Izatul Sorfina', 'cb24085@adab.umpsa.edu.my', '1110640352', '', 'admin'),
+(10, 'CB24051', '$2y$10$jP2NSE45pRPWm.Sz.e9tKueCeAAFS0AYC91A9Nid5oeBSdeuiugaK', 'Fatehah Syuhadah', 'cb24051@adab.umpsa.edu.my', '01128089177', '', 'committee');
+
+-- --------------------------------------------------------
+
+--
+>>>>>>> 6f59edc2e8cca6585fce83d74637a0a8b3d12f79
 -- Table structure for table `waiting_list`
 --
 
@@ -334,7 +368,10 @@ ALTER TABLE `event_registration`
 --
 ALTER TABLE `student`
   ADD CONSTRAINT `student_ibfk_1` FOREIGN KEY (`userID`) REFERENCES `user` (`userID`);
+<<<<<<< HEAD
 >>>>>>> 77ae26e78fdd718f5bb828757ee1e5090c042a40
+=======
+>>>>>>> 6f59edc2e8cca6585fce83d74637a0a8b3d12f79
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
