@@ -14,7 +14,8 @@ if (isset($_SESSION['userID'], $_SESSION['type'])) {
 }
 
 $loginError = $_SESSION['login_error'] ?? '';
-unset($_SESSION['login_error']);
+$loginNotice = $_SESSION['login_notice'] ?? '';
+unset($_SESSION['login_error'], $_SESSION['login_notice']);
 ?>
 <!DOCTYPE html>
 <html lang="ms">
@@ -43,6 +44,12 @@ unset($_SESSION['login_error']);
             <div class="login-box">
                 <h1>Welcome Back</h1>
                 <p class="subtitle">Please enter your credentials to access the portal</p>
+
+                <?php if ($loginNotice): ?>
+                    <p style="color:#2c5282;background:#e8f4fc;padding:10px 12px;border-radius:6px;font-size:0.9rem;margin-bottom:16px;">
+                        <?php echo htmlspecialchars($loginNotice); ?>
+                    </p>
+                <?php endif; ?>
 
                 <?php if ($loginError): ?>
                     <p style="color:#c0392b;background:#fdecea;padding:10px 12px;border-radius:6px;font-size:0.9rem;margin-bottom:16px;">

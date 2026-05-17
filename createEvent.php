@@ -31,7 +31,7 @@ unset($_SESSION['createEvent_error'], $_SESSION['createEvent_success']);
         <div class="header-right">
             <div class="user-info">
                 <span class="user-name"><?php echo htmlspecialchars($_SESSION['name']); ?></span>
-                <span class="user-role">Club Member</span>
+                <span class="user-role">Committee Member</span>
             </div>
             <a href="logout.php" class="logout-btn">Logout</a>
         </div>
@@ -217,7 +217,7 @@ unset($_SESSION['createEvent_error'], $_SESSION['createEvent_success']);
                                 <select id="eventVisibility" name="eventVisibility">
                                     <option value="club_members" selected>Club Members Only</option>
                                     <option value="public">Public (All Students)</option>
-                                    <option value="organizers">Organizers Only</option>
+                                    <option value="committee">Committee Only</option>
                                 </select>
                                 <p class="field-hint">Choose who can see this event.</p>
                             </div>
@@ -295,7 +295,7 @@ unset($_SESSION['createEvent_error'], $_SESSION['createEvent_success']);
     </div>
 
     <script>
-        (function () {
+        (function() {
             const desc = document.getElementById('eventDescription');
             const counter = document.getElementById('descCounter');
             const regRadios = document.querySelectorAll('input[name="registrationRequired"]');
@@ -327,7 +327,7 @@ unset($_SESSION['createEvent_error'], $_SESSION['createEvent_success']);
                 }
             }
 
-            regRadios.forEach(function (radio) {
+            regRadios.forEach(function(radio) {
                 radio.addEventListener('change', toggleRegistrationDates);
             });
             toggleRegistrationDates();
@@ -335,7 +335,7 @@ unset($_SESSION['createEvent_error'], $_SESSION['createEvent_success']);
             function showPreview(file) {
                 if (!file || !file.type.startsWith('image/')) return;
                 const reader = new FileReader();
-                reader.onload = function (e) {
+                reader.onload = function(e) {
                     preview.src = e.target.result;
                     preview.classList.remove('hidden');
                     placeholder.classList.add('hidden');
@@ -343,20 +343,20 @@ unset($_SESSION['createEvent_error'], $_SESSION['createEvent_success']);
                 reader.readAsDataURL(file);
             }
 
-            fileInput.addEventListener('change', function () {
+            fileInput.addEventListener('change', function() {
                 if (fileInput.files[0]) showPreview(fileInput.files[0]);
             });
 
-            uploadZone.addEventListener('dragover', function (e) {
+            uploadZone.addEventListener('dragover', function(e) {
                 e.preventDefault();
                 uploadZone.classList.add('dragover');
             });
 
-            uploadZone.addEventListener('dragleave', function () {
+            uploadZone.addEventListener('dragleave', function() {
                 uploadZone.classList.remove('dragover');
             });
 
-            uploadZone.addEventListener('drop', function (e) {
+            uploadZone.addEventListener('drop', function(e) {
                 e.preventDefault();
                 uploadZone.classList.remove('dragover');
                 if (e.dataTransfer.files.length) {
