@@ -46,7 +46,7 @@ if ($_SESSION['type'] !== 'admin') {
                     <a href="adminEventManagement.php"><i class="fas fa-calendar-check"></i> Events</a>
                 </li>
                 <li>
-                    <a href="#"><i class="fas fa-users-cog"></i> User Control</a>
+                    <a href="adminUserControl.php"><i class="fas fa-users-cog"></i> User Control</a>
                 </li>
                 <li>
                     <a href="#"><i class="fas fa-file-alt"></i> Reporting Module</a>
