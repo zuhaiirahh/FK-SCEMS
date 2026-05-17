@@ -1,6 +1,5 @@
 <?php
 session_start();
-<<<<<<< HEAD
 include 'fkscems.php';
 
 // Proteksi halaman admin
@@ -20,12 +19,6 @@ if (isset($_GET['search']) && !empty($_GET['search'])) {
 
 $userQuery = "SELECT userID, name, userType, 'Active' as status FROM user" . $searchQuery . " ORDER BY userID DESC";
 $userResult = mysqli_query($conn, $userQuery);
-=======
-if ($_SESSION['type'] !== 'admin') {
-    header("Location: login.php");
-    exit();
-}
->>>>>>> c442e2197c8554fdec32940e6363c6bed9342a79
 ?>
 
 <!DOCTYPE html>
@@ -34,7 +27,6 @@ if ($_SESSION['type'] !== 'admin') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<<<<<<< HEAD
     <title>User Control - FK-SCEMS</title>
 
     <link rel="stylesheet" href="adminStyle.css">
@@ -105,11 +97,6 @@ if ($_SESSION['type'] !== 'admin') {
             font-weight: 600;
         }
     </style>
-=======
-    <title>Manage User - FK-SCEMS</title>
-    <link rel="stylesheet" href="adminStyle.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
->>>>>>> c442e2197c8554fdec32940e6363c6bed9342a79
 </head>
 
 <body class="dashboard-body">
@@ -119,7 +106,6 @@ if ($_SESSION['type'] !== 'admin') {
             <img src="images/umpsaLogo.png" alt="UMPSA Logo" class="mini-logo">
             <span class="system-title">FK-SCEMS</span>
         </div>
-<<<<<<< HEAD
 
         <div class="header-right">
             <div class="user-info">
@@ -129,14 +115,6 @@ if ($_SESSION['type'] !== 'admin') {
                 <span class="user-role">Administrator</span>
             </div>
             <a href="logout.php" class="logout-btn">Logout</a>
-=======
-        <div class="header-right">
-            <div class="user-info">
-                <span class="user-name"><?php echo $_SESSION['name']; ?></span>
-                <span class="user-role">Administrator</span>
-            </div>
-            <a href="login.php" class="logout-btn">Logout</a>
->>>>>>> c442e2197c8554fdec32940e6363c6bed9342a79
         </div>
     </header>
 
