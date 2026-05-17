@@ -1,3 +1,21 @@
+<?php
+session_start();
+
+// Already logged in — send to the right page
+if (isset($_SESSION['userID'], $_SESSION['type'])) {
+    if ($_SESSION['type'] === 'admin') {
+        header('Location: adminDashboard.php');
+    } elseif ($_SESSION['type'] === 'committee') {
+        header('Location: createEvent.php');
+    } else {
+        header('Location: studentDashboard.php');
+    }
+    exit();
+}
+
+$loginError = $_SESSION['login_error'] ?? '';
+unset($_SESSION['login_error']);
+?>
 <!DOCTYPE html>
 <html lang="ms">
 
@@ -26,17 +44,24 @@
                 <h1>Welcome Back</h1>
                 <p class="subtitle">Please enter your credentials to access the portal</p>
 
+                <?php if ($loginError): ?>
+                    <p style="color:#c0392b;background:#fdecea;padding:10px 12px;border-radius:6px;font-size:0.9rem;margin-bottom:16px;">
+                        <?php echo htmlspecialchars($loginError); ?>
+                    </p>
+                <?php endif; ?>
+
                 <form action="login_process.php" method="POST">
                     <div class="input-group">
                         <label>User ID</label>
-                        <input type="text" name="userid" required>
+                        <input type="text" name="userid" placeholder="Enter your User ID" required autofocus>
                     </div>
                     <div class="input-group">
                         <label>Password</label>
-                        <input type="password" name="password" required>
+                        <input type="password" name="password" placeholder="Enter password" required>
                     </div>
                     <button type="submit" name="login" class="sign-in-btn">Sign In</button>
                 </form>
+
             </div>
         </div>
     </div>

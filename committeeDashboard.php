@@ -21,7 +21,7 @@ $waitlist = 5;
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Committee Dashboard - FK-SCEMS</title>
+    <title>Club Dashboard - FK-SCEMS</title>
     <link rel="stylesheet" href="adminStyle.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
@@ -36,7 +36,7 @@ $waitlist = 5;
         <div class="header-right">
             <div class="user-info">
                 <span class="user-name"><?php echo $_SESSION['name']; ?></span>
-                <span class="user-role">Committee</span>
+                <span class="user-role">Club Member</span>
             </div>
             <a href="logout.php" class="logout-btn">Logout</a>
         </div>
@@ -52,7 +52,7 @@ $waitlist = 5;
                     <a href="membership.php"><i class="fas fa-users"></i> Membership</a>
                 </li>
                 <li>
-                    <a href="eventManagement.php"><i class="fas fa-calendar-alt"></i> Event Management</a>
+                    <a href="manageEvent.php"><i class="fas fa-calendar-alt"></i> Event Management</a>
                 </li>
                 <li>
                     <a href="attendance.php"><i class="fas fa-clipboard-check"></i> Attendance</a>

@@ -1,12 +1,22 @@
 <?php
-$hostname = "127.0.0.1";
-$username = "root";
-$password = "";
-$dbname = "fkscems";
-$port = 3307;
+$username = 'root';
+$password = '';
+$dbname = 'fkscems';
 
-$conn = mysqli_connect($hostname, $username, $password, $dbname, $port);
+// Try port 3307 first (XAMPP default in this project), then 3306
+$conn = @mysqli_connect('127.0.0.1', $username, $password, $dbname, 3307);
+if (!$conn) {
+    $conn = @mysqli_connect('127.0.0.1', $username, $password, $dbname, 3306);
+}
+if (!$conn) {
+    $conn = @mysqli_connect('localhost', $username, $password, $dbname, 3307);
+}
+if (!$conn) {
+    $conn = @mysqli_connect('localhost', $username, $password, $dbname, 3306);
+}
 
 if (!$conn) {
-    die("Connection failed: " . mysqli_connect_error());
+    die('Connection failed. Start MySQL in XAMPP, then import fkscems.sql or setup.sql in phpMyAdmin.');
 }
+
+mysqli_set_charset($conn, 'utf8mb4');
