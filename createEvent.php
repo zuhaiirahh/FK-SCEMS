@@ -44,7 +44,7 @@ unset($_SESSION['createEvent_error'], $_SESSION['createEvent_success']);
                     <a href="committeeDashboard.php"><i class="fas fa-th-large"></i> Dashboard</a>
                 </li>
                 <li class="active has-submenu open">
-                    <a href="#"><i class="fas fa-calendar-alt"></i> Event</a>
+                    <a href="manageEvent.php"><i class="fas fa-calendar-alt"></i> Event</a>
                     <ul class="submenu">
                         <li><a href="manageEvent.php">My Events</a></li>
                         <li><a href="createEvent.php" class="active-sub">Create Event</a></li>
@@ -69,7 +69,7 @@ unset($_SESSION['createEvent_error'], $_SESSION['createEvent_success']);
             <nav class="breadcrumb" aria-label="Breadcrumb">
                 <a href="committeeDashboard.php">Dashboard</a>
                 <span class="breadcrumb-sep">&gt;</span>
-                <span>Event</span>
+                <a href="manageEvent.php">Event</a>
                 <span class="breadcrumb-sep">&gt;</span>
                 <span class="breadcrumb-current">Create Event</span>
             </nav>

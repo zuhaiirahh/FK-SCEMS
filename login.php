@@ -6,7 +6,7 @@ if (isset($_SESSION['userID'], $_SESSION['type'])) {
     if ($_SESSION['type'] === 'admin') {
         header('Location: adminDashboard.php');
     } elseif ($_SESSION['type'] === 'committee') {
-        header('Location: createEvent.php');
+        header('Location: manageEvent.php');
     } else {
         header('Location: studentDashboard.php');
     }

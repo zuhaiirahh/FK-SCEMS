@@ -10,7 +10,7 @@ $userType = strtolower(trim($_SESSION['type'] ?? ''));
 
 // Club organiser role goes straight to create event
 if ($userType === 'committee') {
-    header('Location: createEvent.php');
+    header('Location: manageEvent.php');
     exit();
 }
 
@@ -55,7 +55,7 @@ if ($userType !== 'student') {
                         </div>
                     </a>
 
-                    <a href="createEvent.php" class="switcher-card">
+                    <a href="manageEvent.php" class="switcher-card">
                         <div class="card-image-content">
                             <img src="images/committee.png" alt="Event Management" class="card-icon-img">
                             <span class="card-label-text">Event Management</span>

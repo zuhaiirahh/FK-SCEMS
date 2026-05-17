@@ -29,7 +29,7 @@ if ($_SESSION['type'] !== 'admin') {
                 <span class="user-name"><?php echo $_SESSION['name']; ?></span>
                 <span class="user-role">Administrator</span>
             </div>
-            <a href="login.php" class="logout-btn">Logout</a>
+            <a href="logout.php" class="logout-btn">Logout</a>
         </div>
     </header>
 
@@ -43,7 +43,7 @@ if ($_SESSION['type'] !== 'admin') {
                     <a href="#"><i class="fas fa-tasks"></i> Club Management</a>
                 </li>
                 <li>
-                    <a href="#"><i class="fas fa-calendar-check"></i> Events</a>
+                    <a href="adminEventManagement.php"><i class="fas fa-calendar-check"></i> Events</a>
                 </li>
                 <li>
                     <a href="#"><i class="fas fa-users-cog"></i> User Control</a>
