@@ -66,7 +66,7 @@ $_SESSION['type'] = $userType;
 if ($userType === 'admin') {
     header('Location: adminDashboard.php');
 } elseif ($userType === 'committee') {
-    header('Location: manageEvent.php');
+    header('Location: dashboardSwitcher.php');
 } else {
     header('Location: studentDashboard.php');
 }

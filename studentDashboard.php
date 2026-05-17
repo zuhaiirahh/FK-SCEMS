@@ -31,7 +31,7 @@ if ($_SESSION['type'] !== 'student' && $_SESSION['type'] !== 'committee') {
                 <span class="user-role">
                     Student</span>
             </div>
-            <a href="login.php" class="logout-btn">Logout</a>
+            <a href="logout.php" class="logout-btn">Logout</a>
         </div>
     </header>
 

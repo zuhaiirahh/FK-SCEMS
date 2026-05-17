@@ -1,6 +1,7 @@
 <?php
 session_start();
 
+// 1. If not logged in at all, send them to login page
 if (!isset($_SESSION['userID'])) {
     header('Location: login.php');
     exit();
@@ -8,14 +9,10 @@ if (!isset($_SESSION['userID'])) {
 
 $userType = strtolower(trim($_SESSION['type'] ?? ''));
 
-// Club organiser role goes straight to create event
-if ($userType === 'committee') {
-    header('Location: manageEvent.php');
-    exit();
-}
-
-if ($userType !== 'student') {
-    header('Location: login.php');
+// 2. Allow 'committee' to stay and view this page. 
+// If they are NOT a committee member, redirect them to the student dashboard.
+if ($userType !== 'committee') {
+    header('Location: studentDashboard.php');
     exit();
 }
 ?>
@@ -55,10 +52,10 @@ if ($userType !== 'student') {
                         </div>
                     </a>
 
-                    <a href="manageEvent.php" class="switcher-card">
+                    <a href="committeeDashboard.php" class="switcher-card">
                         <div class="card-image-content">
-                            <img src="images/committee.png" alt="Event Management" class="card-icon-img">
-                            <span class="card-label-text">Event Management</span>
+                            <img src="images/committee.png" alt="Committee Icon" class="card-icon-img">
+                            <span class="card-label-text">Committee</span>
                         </div>
                     </a>
                 </div>
