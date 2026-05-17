@@ -125,8 +125,8 @@ CREATE TABLE `student` (
 -- Table structure for table `user`
 --
 
-CREATE TABLE `user` (
-  `userID` int(11) NOT NULL,
+CREATE TABLE `user` (/*auto increment should be applied here*/
+  `userID` int(11) NOT NULL AUTO_INCREMENT,
   `username` varchar(50) NOT NULL,
   `password` varchar(255) NOT NULL,
   `name` varchar(150) NOT NULL,
