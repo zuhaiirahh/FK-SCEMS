@@ -187,8 +187,8 @@ $userResult = mysqli_query($conn, $userQuery);
                                         </td>
                                         <td align="center">
                                             <div class="action-btns">
-                                                <a href="editUser.php?id=<?php echo $row['userID']; ?>" class="btn-edit"><i class="fas fa-edit"></i> Edit</a>
-                                                <a href="deleteUser.php?id=<?php echo $row['userID']; ?>" class="btn-delete" onclick="return confirm('Are you sure?')"><i class="fas fa-trash"></i> Delete</a>
+                                                <a href="adminEditUser.php?id=<?php echo $row['userID']; ?>" class="btn-edit"><i class="fas fa-edit"></i> Edit</a>
+                                                <a href="adminDeleteUser.php?id=<?php echo $row['userID']; ?>" class="btn-delete" onclick="return confirm('Are you sure?')"><i class="fas fa-trash"></i> Delete</a>
                                             </div>
                                         </td>
                                     </tr>
