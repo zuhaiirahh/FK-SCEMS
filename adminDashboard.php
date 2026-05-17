@@ -161,7 +161,7 @@ if ($_SESSION['type'] !== 'admin') {
                             <tr>
                                 <td>AD9012</td>
                                 <td>Sarah Tan</td>
-                                <td>Committee</td>
+                                <td>Club Member</td>
                                 <td>09 May 2026</td>
                             </tr>
                         </tbody>

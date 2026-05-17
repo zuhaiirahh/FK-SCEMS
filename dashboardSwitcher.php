@@ -1,12 +1,24 @@
 <?php
 session_start();
-// Student dan Committee dua-dua boleh masuk sini
-if ($_SESSION['type'] !== 'student' && $_SESSION['type'] !== 'committee') {
-    header("Location: login.php");
+
+if (!isset($_SESSION['userID'])) {
+    header('Location: login.php');
+    exit();
+}
+
+$userType = strtolower(trim($_SESSION['type'] ?? ''));
+
+// Club organiser role goes straight to create event
+if ($userType === 'committee') {
+    header('Location: createEvent.php');
+    exit();
+}
+
+if ($userType !== 'student') {
+    header('Location: login.php');
     exit();
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="ms">
 
@@ -43,15 +55,15 @@ if ($_SESSION['type'] !== 'student' && $_SESSION['type'] !== 'committee') {
                         </div>
                     </a>
 
-                    <a href="committeeDashboard.php" class="switcher-card">
+                    <a href="createEvent.php" class="switcher-card">
                         <div class="card-image-content">
-                            <img src="images/committee.png" alt="Committee Icon" class="card-icon-img">
-                            <span class="card-label-text">Committee</span>
+                            <img src="images/committee.png" alt="Event Management" class="card-icon-img">
+                            <span class="card-label-text">Event Management</span>
                         </div>
                     </a>
                 </div>
 
-                <a href="login.html" class="sign-in-btn">Back to Login</a>
+                <a href="logout.php" class="sign-in-btn" style="display:inline-block;text-align:center;text-decoration:none;">Logout</a>
             </div>
         </div>
     </div>
