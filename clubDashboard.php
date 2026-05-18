@@ -23,16 +23,14 @@ if ($statResult && $row = mysqli_fetch_assoc($statResult)) {
     $inactiveClubs  = (int)$row['inactive'];
 }
 
-// Get total students across all clubs (assuming a ClubMembership table exists)
-// Jika tiada table ini, letakkan default value atau ubah ikut struktur database anda
+// Ambil jumlah pelajar (Sila tukar nama table 'ClubMembership' jika berbeza di database anda)
 $studentQuery = "SELECT COUNT(DISTINCT studentID) as total_stud FROM ClubMembership";
 $studentResult = mysqli_query($conn, $studentQuery);
 if ($studentResult && $sRow = mysqli_fetch_assoc($studentResult)) {
     $totalStudents = (int)$sRow['total_stud'];
 }
 
-
-// 2. Fetch data for Bar Chart (Total students per club)
+// 2. Fetch data for Bar Chart (Sila tukar nama table jika berbeza)
 $labels = [];
 $values = [];
 
@@ -177,7 +175,7 @@ if ($chartResult) {
 </div>
 
     <script>
-        // Render Bar Chart
+        // Graf Bar
         new Chart(document.getElementById('barChart'), {
             type: 'bar',
             data: { 
@@ -194,7 +192,7 @@ if ($chartResult) {
             }
         });
 
-        // Render Pie Chart
+        // Graf Pie
         new Chart(document.getElementById('pieChart'), {
             type: 'pie',
             data: { 
