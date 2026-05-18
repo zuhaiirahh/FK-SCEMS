@@ -301,7 +301,7 @@ function pageUrl(array $override = []): string {
                                     <?= confirmBadge($r['confirmationStatus'] ?? null) ?>
                                 </td>
                                 <td class="px-gutter py-5 text-right">
-                                    <a href="viewRegistration.php?registrationID=<?= (int)$r['registrationID'] ?>"
+                                    <a href="registrationConfirmation.php?registrationID=<?= (int)$r['registrationID'] ?>"
                                        class="inline-flex items-center gap-1 px-4 py-2 border border-primary text-primary rounded-lg font-label-lg hover:bg-primary-container/10 transition-all">
                                         View <span class="material-symbols-outlined text-sm">keyboard_arrow_right</span>
                                     </a>
