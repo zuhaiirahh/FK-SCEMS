@@ -221,4 +221,9 @@ admin_page_start('Administrator Dashboard', 'dashboard');
                 </div>
             </section>
 
-<?php admin_page_end(); ?>
+    <script>
+        // Sediakan carta anda di sini pada masa hadapan jika perlu
+    </script>
+</body>
+
+</html>
