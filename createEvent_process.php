@@ -1,6 +1,7 @@
 <?php
 session_start();
 include 'fkscems.php';
+require_once __DIR__ . '/includes/event_schema.php';
 
 if (!isset($_SESSION['userID']) || $_SESSION['type'] !== 'committee') {
     header('Location: login.php');
@@ -13,7 +14,6 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 $action = $_POST['action'] ?? 'draft';
-$status = ($action === 'submit') ? 'pending_approval' : 'draft';
 
 function redirectWithError(string $message): void
 {
@@ -65,85 +65,103 @@ if ($contactEmail !== '' && !filter_var($contactEmail, FILTER_VALIDATE_EMAIL)) {
     redirectWithError('Please enter a valid contact email.');
 }
 
-$posterPath = null;
-if (!empty($_FILES['eventPoster']['name'])) {
-    $file = $_FILES['eventPoster'];
-    $allowed = ['image/jpeg', 'image/jpg', 'image/png'];
-    $maxSize = 5 * 1024 * 1024;
-
-    if ($file['error'] !== UPLOAD_ERR_OK) {
-        redirectWithError('Failed to upload event poster.');
-    }
-
-    if ($file['size'] > $maxSize) {
-        redirectWithError('Event poster must be 5MB or smaller.');
-    }
-
-    $finfo = finfo_open(FILEINFO_MIME_TYPE);
-    $mime = finfo_file($finfo, $file['tmp_name']);
-    finfo_close($finfo);
-
-    if (!in_array($mime, $allowed, true)) {
-        redirectWithError('Event poster must be PNG or JPEG.');
-    }
-
-    $uploadDir = __DIR__ . '/uploads/events/';
-    if (!is_dir($uploadDir)) {
-        mkdir($uploadDir, 0755, true);
-    }
-
-    $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
-    $filename = 'event_' . time() . '_' . bin2hex(random_bytes(4)) . '.' . strtolower($ext);
-    $destination = $uploadDir . $filename;
-
-    if (!move_uploaded_file($file['tmp_name'], $destination)) {
-        redirectWithError('Failed to save event poster.');
-    }
-
-    $posterPath = 'uploads/events/' . $filename;
+try {
+    $posterPath = uploadEventPosterFile(function (string $message): void {
+        redirectWithError($message);
+    });
+} catch (RuntimeException $e) {
+    redirectWithError($e->getMessage());
 }
 
-$createdBy = (int) $_SESSION['userID'];
+$legacy = eventUsesLegacySchema($conn);
 
-$stmt = mysqli_prepare($conn, "
-    INSERT INTO event (
-        createdBy, eventTitle, eventCategory, eventDate, startTime, endTime,
-        venue, locationRoom, eventDescription, registrationRequired,
-        registrationStartDate, registrationEndDate, approvalRequired,
-        eventVisibility, eventPoster, estimatedCost, maxParticipants,
-        contactPerson, contactEmail, contactPhone, status
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-");
+if ($legacy) {
+    ensureLegacyEventSchema($conn);
 
-if (!$stmt) {
-    redirectWithError('Database error. Please ensure the event table exists (run fkscems.sql).');
+    try {
+        $clubID = resolveClubIdForCategory($conn, $eventCategory);
+    } catch (RuntimeException $e) {
+        redirectWithError($e->getMessage());
+    }
+
+    $eventStatus = legacyEventStatusFromAction($action);
+    $eventVenue = $venue;
+    if ($locationRoom !== '') {
+        $eventVenue .= ', ' . $locationRoom;
+    }
+    $maxParticipations = $maxParticipants ?? 0;
+    $posterValue = $posterPath ?? '';
+
+    $stmt = mysqli_prepare($conn, '
+        INSERT INTO event (
+            clubID, eventTitle, eventDescription, eventDate, eventTime,
+            eventVenue, maxParticipations, eventStatus, eventPoster
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ');
+
+    if (!$stmt) {
+        redirectWithError('Database error. Could not save event.');
+    }
+
+    mysqli_stmt_bind_param(
+        $stmt,
+        'issssisis',
+        $clubID,
+        $eventTitle,
+        $eventDescription,
+        $eventDate,
+        $startTime,
+        $eventVenue,
+        $maxParticipations,
+        $eventStatus,
+        $posterValue
+    );
+} else {
+    $status = extendedEventStatusFromAction($action);
+    $createdBy = (int) $_SESSION['userID'];
+    $posterValue = $posterPath;
+    $maxParticipantsValue = $maxParticipants;
+
+    $stmt = mysqli_prepare($conn, "
+        INSERT INTO event (
+            createdBy, eventTitle, eventCategory, eventDate, startTime, endTime,
+            venue, locationRoom, eventDescription, registrationRequired,
+            registrationStartDate, registrationEndDate, approvalRequired,
+            eventVisibility, eventPoster, estimatedCost, maxParticipants,
+            contactPerson, contactEmail, contactPhone, status
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ");
+
+    if (!$stmt) {
+        redirectWithError('Database error. Please ensure the event table exists (run setup.sql).');
+    }
+
+    mysqli_stmt_bind_param(
+        $stmt,
+        'issssssssissssidisss',
+        $createdBy,
+        $eventTitle,
+        $eventCategory,
+        $eventDate,
+        $startTime,
+        $endTime,
+        $venue,
+        $locationRoom,
+        $eventDescription,
+        $registrationRequired,
+        $registrationStartDate,
+        $registrationEndDate,
+        $approvalRequired,
+        $eventVisibility,
+        $posterValue,
+        $estimatedCost,
+        $maxParticipantsValue,
+        $contactPerson,
+        $contactEmail,
+        $contactPhone,
+        $status
+    );
 }
-
-mysqli_stmt_bind_param(
-    $stmt,
-    'issssssssissssidissss',
-    $createdBy,
-    $eventTitle,
-    $eventCategory,
-    $eventDate,
-    $startTime,
-    $endTime,
-    $venue,
-    $locationRoom,
-    $eventDescription,
-    $registrationRequired,
-    $registrationStartDate,
-    $registrationEndDate,
-    $approvalRequired,
-    $eventVisibility,
-    $posterPath,
-    $estimatedCost,
-    $maxParticipants,
-    $contactPerson,
-    $contactEmail,
-    $contactPhone,
-    $status
-);
 
 if (!mysqli_stmt_execute($stmt)) {
     mysqli_stmt_close($stmt);
@@ -152,9 +170,14 @@ if (!mysqli_stmt_execute($stmt)) {
 
 mysqli_stmt_close($stmt);
 
-$_SESSION['createEvent_success'] = $status === 'draft'
+if ($legacy && $action === 'submit') {
+    syncLegacyEventsForStudentBrowse($conn);
+}
+
+$isDraft = $action !== 'submit';
+$_SESSION['createEvent_success'] = $isDraft
     ? 'Event saved as draft successfully.'
-    : 'Event submitted for approval successfully.';
+    : 'Event published successfully. Students can browse and register when the event is active.';
 
 header('Location: manageEvent.php');
 exit();

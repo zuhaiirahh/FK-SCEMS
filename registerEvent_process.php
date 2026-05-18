@@ -13,14 +13,27 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit();
 }
 
-function redirectBrowse(string $message, bool $isError = false): void
+function redirectAfterRegister(string $message, bool $isError = false, ?int $eventID = null, ?int $registrationID = null): void
 {
     if ($isError) {
-        $_SESSION['browse_error'] = $message;
+        if ($eventID) {
+            $_SESSION['reg_confirm_error'] = $message;
+            $action = ($_POST['action'] ?? '') === 'waitlist' ? '&action=waitlist' : '';
+            header('Location: registrationConfirmation.php?id=' . $eventID . $action);
+        } else {
+            $_SESSION['browse_error'] = $message;
+            header('Location: browseEvents.php');
+        }
+    } elseif ($registrationID) {
+        $_SESSION['reg_confirm_success'] = $message;
+        header('Location: registrationConfirmation.php?registrationID=' . $registrationID);
+    } elseif ($eventID) {
+        $_SESSION['reg_confirm_success'] = $message;
+        header('Location: registrationConfirmation.php?id=' . $eventID);
     } else {
         $_SESSION['browse_success'] = $message;
+        header('Location: browseEvents.php');
     }
-    header('Location: browseEvents.php');
     exit();
 }
 
@@ -29,27 +42,27 @@ $eventID = (int) ($_POST['eventID'] ?? 0);
 $userID = (int) $_SESSION['userID'];
 
 if ($eventID <= 0 || !in_array($action, ['register', 'waitlist'], true)) {
-    redirectBrowse('Invalid request.', true);
+    redirectAfterRegister('Invalid request.', true, $eventID > 0 ? $eventID : null);
 }
 
 $regTable = mysqli_query($conn, "SHOW TABLES LIKE 'event_registration'");
 $waitTable = mysqli_query($conn, "SHOW TABLES LIKE 'waiting_list'");
 if (!$regTable || mysqli_num_rows($regTable) === 0) {
-    redirectBrowse('Registration is not set up yet. Please import student_registration_tables.sql in phpMyAdmin.', true);
+    redirectAfterRegister('Registration is not set up yet. Please import student_registration_tables.sql in phpMyAdmin.', true, $eventID);
 }
 
 $today = date('Y-m-d');
 $event = fetchBrowsableEvent($conn, $eventID, $today);
 
 if (!$event) {
-    redirectBrowse('This event is not available for registration.', true);
+    redirectAfterRegister('This event is not available for registration.', true, $eventID);
 }
 
 if (!eventUsesLegacySchema($conn) && (int) ($event['registrationRequired'] ?? 1) === 1) {
     $regStart = $event['registrationStartDate'] ?: '1970-01-01';
     $regEnd = $event['registrationEndDate'] ?: '2099-12-31';
     if ($today < $regStart || $today > $regEnd) {
-        redirectBrowse('Registration for this event is not open.', true);
+        redirectAfterRegister('Registration for this event is not open.', true, $eventID);
     }
 }
 
@@ -70,7 +83,7 @@ $alreadyRegistered = (bool) mysqli_stmt_get_result($existingReg)->fetch_assoc();
 mysqli_stmt_close($existingReg);
 
 if ($alreadyRegistered) {
-    redirectBrowse('You are already registered for this event.', true);
+    redirectAfterRegister('You are already registered for this event.', true, $eventID);
 }
 
 $userWaiting = false;
@@ -86,7 +99,7 @@ $eventTitle = $event['eventTitle'] ?? 'Event';
 
 if ($action === 'register') {
     if ($maxSlots !== null && $regCount >= $maxSlots) {
-        redirectBrowse('This event is full. You can join the waiting list instead.', true);
+        redirectAfterRegister('This event is full. You can join the waiting list instead.', true, $eventID);
     }
 
     $insert = mysqli_prepare($conn, "
@@ -99,24 +112,25 @@ if ($action === 'register') {
         if ($insert) {
             mysqli_stmt_close($insert);
         }
-        redirectBrowse('Failed to register. Please try again.', true);
+        redirectAfterRegister('Failed to register. Please try again.', true, $eventID);
     }
+    $newRegistrationID = (int) mysqli_insert_id($conn);
     mysqli_stmt_close($insert);
 
-    redirectBrowse('Successfully registered for "' . $eventTitle . '".');
+    redirectAfterRegister('Successfully registered for "' . $eventTitle . '".', false, null, $newRegistrationID);
 }
 
 if ($action === 'waitlist') {
     if (!$waitTable || mysqli_num_rows($waitTable) === 0) {
-        redirectBrowse('Waiting list is not available.', true);
+        redirectAfterRegister('Waiting list is not available.', true, $eventID);
     }
 
     if ($maxSlots === null || $regCount < $maxSlots) {
-        redirectBrowse('This event still has available slots. Please register instead.', true);
+        redirectAfterRegister('This event still has available slots. Please register instead.', true, $eventID);
     }
 
     if ($userWaiting) {
-        redirectBrowse('You are already on the waiting list for this event.', true);
+        redirectAfterRegister('You are already on the waiting list for this event.', true, $eventID);
     }
 
     $insertWait = mysqli_prepare($conn, "
@@ -129,11 +143,11 @@ if ($action === 'waitlist') {
         if ($insertWait) {
             mysqli_stmt_close($insertWait);
         }
-        redirectBrowse('Failed to join the waiting list. Please try again.', true);
+        redirectAfterRegister('Failed to join the waiting list. Please try again.', true, $eventID);
     }
     mysqli_stmt_close($insertWait);
 
-    redirectBrowse('You have joined the waiting list for "' . $eventTitle . '".');
+    redirectAfterRegister('You have joined the waiting list for "' . $eventTitle . '".', false, $eventID);
 }
 
-redirectBrowse('Invalid action.', true);
+redirectAfterRegister('Invalid action.', true, $eventID);
