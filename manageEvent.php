@@ -41,13 +41,13 @@ function statusFilterSql(string $filter): string
     $today = date('Y-m-d');
     switch ($filter) {
         case 'active':
-            return " AND e.status = 'approved' AND e.eventDate >= '{$today}'";
+            return " AND e.eventStatus = 'approved' AND e.eventDate >= '{$today}'";
         case 'draft':
-            return " AND e.status IN ('draft', 'pending_approval')";
+            return " AND e.eventStatus IN ('draft', 'pending_approval')";
         case 'closed':
-            return " AND (e.status = 'rejected' OR (e.status = 'approved' AND e.eventDate < '{$today}'))";
+            return " AND (e.eventStatus = 'rejected' OR (e.eventStatus = 'approved' AND e.eventDate < '{$today}'))";
         case 'cancelled':
-            return " AND e.status = 'cancelled'";
+            return " AND e.eventStatus = 'cancelled'";
         default:
             return '';
     }
@@ -62,83 +62,75 @@ if ($tableCheck && mysqli_num_rows($tableCheck) > 0) {
     $regCheck = mysqli_query($conn, "SHOW TABLES LIKE 'event_registration'");
     $hasRegTable = $regCheck && mysqli_num_rows($regCheck) > 0;
 
-    /*$where = "WHERE e.createdBy = ?";*/
-    // Define the base WHERE clause
-    // Based on your schema, it looks like you might need to track who created the event.
-    // If you don't have a 'createdBy' column yet, use '1=1' to allow easy appending.
-    // 1. Prepare the WHERE clause
-$where = "WHERE 1=1"; 
-$types = '';
-$params = [];
+    $where = "WHERE 1=1"; 
+    $types = '';
+    $params = [];
 
-if ($search !== '') {
-    $where .= ' AND e.eventTitle LIKE ?';
-    $types .= 's';
-    $params[] = '%' . $search . '%';
-}
-
-// Add the status filter logic
-$where .= statusFilterSql($statusFilter);
-
-// 2. Get Total Count for Pagination
-$countSql = "SELECT COUNT(*) AS total FROM event e $where";
-$countStmt = mysqli_prepare($conn, $countSql);
-
-if ($countStmt) {
-    if (!empty($params)) {
-        mysqli_stmt_bind_param($countStmt, $types, ...$params);
+    if ($search !== '') {
+        $where .= ' AND e.eventTitle LIKE ?';
+        $types .= 's';
+        $params[] = '%' . $search . '%';
     }
-    mysqli_stmt_execute($countStmt);
-    $countResult = mysqli_stmt_get_result($countStmt);
-    $countRow = mysqli_fetch_assoc($countResult);
-    $totalEvents = (int) ($countRow['total'] ?? 0);
-    
-    // CRITICAL: Free the result and close before the next query
-    mysqli_stmt_free_result($countStmt);
-    mysqli_stmt_close($countStmt);
-}
 
-// 3. Fetch the List of Events
-$offset = ($page - 1) * $perPage;
-$regSub = $hasRegTable
-    ? "(SELECT COUNT(*) FROM event_registration er WHERE er.eventID = e.eventID)"
-    : "0";
+    $where .= statusFilterSql($statusFilter);
 
-$listSql = "
-    SELECT 
-        e.eventID, 
-        e.eventTitle, 
-        e.eventDate, 
-        e.eventTime,
-        e.eventVenue, 
-        e.maxParticipations, 
-        e.eventStatus, 
-        {$regSub} AS regCount
-    FROM event e
-    $where
-    ORDER BY e.eventID DESC
-    LIMIT ? OFFSET ?
-";
+    // Get Total Count for Pagination
+    $countSql = "SELECT COUNT(*) AS total FROM event e $where";
+    $countStmt = mysqli_prepare($conn, $countSql);
 
-$listStmt = mysqli_prepare($conn, $listSql);
-
-if ($listStmt) {
-    $listTypes = $types . 'ii';
-    $listParams = array_merge($params, [(int)$perPage, (int)$offset]);
-    
-    mysqli_stmt_bind_param($listStmt, $listTypes, ...$listParams);
-    
-    if (mysqli_stmt_execute($listStmt)) {
-        $result = mysqli_stmt_get_result($listStmt);
-        while ($row = mysqli_fetch_assoc($result)) {
-            $events[] = $row;
+    if ($countStmt) {
+        if (!empty($params)) {
+            mysqli_stmt_bind_param($countStmt, $types, ...$params);
         }
-        // Free result again
-        mysqli_stmt_free_result($listStmt);
+        mysqli_stmt_execute($countStmt);
+        $countResult = mysqli_stmt_get_result($countStmt);
+        $countRow = mysqli_fetch_assoc($countResult);
+        $totalEvents = (int) ($countRow['total'] ?? 0);
+        
+        mysqli_stmt_free_result($countStmt);
+        mysqli_stmt_close($countStmt);
     }
-    mysqli_stmt_close($listStmt);
-}}
 
+    // Fetch the List of Events
+    $offset = ($page - 1) * $perPage;
+    $regSub = $hasRegTable
+        ? "(SELECT COUNT(*) FROM event_registration er WHERE er.eventID = e.eventID)"
+        : "0";
+
+    $listSql = "
+        SELECT 
+            e.eventID, 
+            e.eventTitle, 
+            e.eventDate, 
+            e.eventTime,
+            e.eventVenue, 
+            e.maxParticipations, 
+            e.eventStatus, 
+            {$regSub} AS regCount
+        FROM event e
+        $where
+        ORDER BY e.eventID DESC
+        LIMIT ? OFFSET ?
+    ";
+
+    $listStmt = mysqli_prepare($conn, $listSql);
+
+    if ($listStmt) {
+        $listTypes = $types . 'ii';
+        $listParams = array_merge($params, [(int)$perPage, (int)$offset]);
+        
+        mysqli_stmt_bind_param($listStmt, $listTypes, ...$listParams);
+        
+        if (mysqli_stmt_execute($listStmt)) {
+            $result = mysqli_stmt_get_result($listStmt);
+            while ($row = mysqli_fetch_assoc($result)) {
+                $events[] = $row;
+            }
+            mysqli_stmt_free_result($listStmt);
+        }
+        mysqli_stmt_close($listStmt);
+    }
+}
 
 $totalPages = max(1, (int) ceil($totalEvents / $perPage));
 if ($page > $totalPages) {
@@ -292,7 +284,7 @@ $rangeEnd = min($page * $perPage, $totalEvents);
         <div class="flex items-center gap-6">
             <div class="text-right hidden md:block">
                 <p class="text-label-lg font-label-lg text-on-surface"><?php echo $userName; ?></p>
-                <p class="text-label-sm font-label-sm text-on-surface-variant">Commitee Club</p>
+                <p class="text-label-sm font-label-sm text-on-surface-variant">Committee Club</p>
             </div>
             <div class="flex items-center gap-4">
                 <span class="material-symbols-outlined text-primary cursor-pointer text-[28px]">account_circle</span>
@@ -418,12 +410,10 @@ $rangeEnd = min($page * $perPage, $totalEvents);
                             <?php else: ?>
                                 <?php foreach ($events as $event): ?>
                                     <?php
-                                    $badge = eventDisplayStatus($event['status'], $event['eventDate']);
-                                    $venueDisplay = htmlspecialchars($event['venue']);
-                                    if (!empty($event['locationRoom'])) {
-                                        $venueDisplay .= ', ' . htmlspecialchars($event['locationRoom']);
-                                    }
-                                    $max = $event['maxParticipants'];
+                                    $badge = eventDisplayStatus($event['eventStatus'], $event['eventDate']);
+                                    $venueDisplay = htmlspecialchars($event['eventVenue']);
+                                    
+                                    $max = $event['maxParticipations'];
                                     $regCount = (int) $event['regCount'];
                                     $slotDisplay = $max
                                         ? $regCount . '/' . (int) $max
@@ -567,5 +557,4 @@ $rangeEnd = min($page * $perPage, $totalEvents);
     </script>
 
 </body>
-
 </html>
