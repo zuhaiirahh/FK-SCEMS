@@ -206,7 +206,7 @@ admin_page_start('Event Management', 'events');
 </div>
 
 <?php if ($flashSuccess): ?>
-    <motion class="alert alert-success" role="status"><i class="fas fa-check-circle"></i> <?php echo htmlspecialchars($flashSuccess); ?></div>
+    <div class="alert alert-success" role="status"><i class="fas fa-check-circle"></i> <?php echo htmlspecialchars($flashSuccess); ?></div>
 <?php endif; ?>
 <?php if ($flashError): ?>
     <div class="alert alert-error" role="alert"><i class="fas fa-exclamation-circle"></i> <?php echo htmlspecialchars($flashError); ?></div>

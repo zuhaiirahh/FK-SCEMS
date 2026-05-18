@@ -90,53 +90,10 @@ admin_page_start('Administrator Dashboard', 'dashboard');
             flex: 1;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
         }
+        a.card-link { text-decoration: none; color: inherit; display: block; flex: 1; }
+        a.card-link:hover .card { box-shadow: 0 8px 16px rgba(0,0,0,0.08); }
     </style>
-</head>
 
-<body class="dashboard-body">
-
-    <header class="main-header">
-        <div class="header-left">
-            <img src="images/umpsaLogo.png" alt="UMPSA Logo" class="mini-logo">
-            <span class="system-title">FK-SCEMS</span>
-        </div>
-
-        <div class="header-right">
-            <div class="user-info">
-                <span class="user-name">
-                    <?php echo htmlspecialchars($_SESSION['name'] ?? 'Admin Name'); ?>
-                </span>
-                <span class="user-role">Administrator</span>
-            </div>
-            <a href="logout.php" class="logout-btn">Logout</a>
-        </div>
-    </header>
-
-    <div class="dashboard-wrapper">
-        <nav class="sidebar">
-            <ul>
-                <li class="active">
-                    <a href="adminDashboard.php"><i class="fas fa-chart-line"></i> Dashboard</a>
-                </li>
-                <li>
-                    <a href="clubDashboard.php"><i class="fas fa-tasks"></i> Club Management</a>
-                </li>
-                <li>
-                    <a href="adminEventManagement.php"><i class="fas fa-calendar-check"></i> Events</a>
-                </li>
-                <li>
-                    <a href="adminUserControl.php"><i class="fas fa-users-cog"></i> User Control</a>
-                </li>
-                <li>
-                    <a href="#"><i class="fas fa-file-alt"></i> Reporting Module</a>
-                </li>
-                <li>
-                    <a href="#"><i class="fas fa-user-shield"></i> My Profile</a>
-                </li>
-            </ul>
-        </nav>
-
-        <main class="main-content">
             <h2>System Overview & Analytics</h2>
 
             <div class="insight-cards">
