@@ -3,7 +3,7 @@ $hostname = "127.0.0.1";
 $username = "root";
 $password = "";
 $dbname = "fkscems";
-$port = 3307;
+$port = 3306;
 
 $conn = mysqli_connect($hostname, $username, $password, $dbname, $port);
 
