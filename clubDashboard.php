@@ -7,19 +7,65 @@ if (!isset($_SESSION['userID']) || $_SESSION['type'] !== 'admin') {
     exit();
 }
 
-// Fetch all clubs from the database
-$query = "SELECT clubID, clubName, clubCategory, clubStatus, clubCreatedDate FROM Club ORDER BY clubID DESC";
-$result = mysqli_query($conn, $query);
-?>
+// 1. Fetch stats for summary cards
+$totalClubs = $activeClubs = $inactiveClubs = $totalStudents = 0;
 
+$statQuery = "SELECT 
+                COUNT(*) as total, 
+                SUM(CASE WHEN clubStatus = 'Active' THEN 1 ELSE 0 END) as active,
+                SUM(CASE WHEN clubStatus = 'Inactive' THEN 1 ELSE 0 END) as inactive 
+              FROM Club";
+$statResult = mysqli_query($conn, $statQuery);
+
+if ($statResult && $row = mysqli_fetch_assoc($statResult)) {
+    $totalClubs     = (int)$row['total'];
+    $activeClubs    = (int)$row['active'];
+    $inactiveClubs  = (int)$row['inactive'];
+}
+
+// Get total students across all clubs (assuming a ClubMembership table exists)
+// Jika tiada table ini, letakkan default value atau ubah ikut struktur database anda
+$studentQuery = "SELECT COUNT(DISTINCT studentID) as total_stud FROM ClubMembership";
+$studentResult = mysqli_query($conn, $studentQuery);
+if ($studentResult && $sRow = mysqli_fetch_assoc($studentResult)) {
+    $totalStudents = (int)$sRow['total_stud'];
+}
+
+
+// 2. Fetch data for Bar Chart (Total students per club)
+$labels = [];
+$values = [];
+
+$chartQuery = "SELECT c.clubName, COUNT(m.studentID) as student_count 
+               FROM Club c 
+               LEFT JOIN ClubMembership m ON c.clubID = m.clubID 
+               GROUP BY c.clubID";
+$chartResult = mysqli_query($conn, $chartQuery);
+
+if ($chartResult) {
+    while ($cRow = mysqli_fetch_assoc($chartResult)) {
+        $labels[] = $cRow['clubName'];
+        $values[] = (int)$cRow['student_count'];
+    }
+}
+?>
 <!DOCTYPE html>
 <html lang="ms">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manage Faculty Clubs - FK-SCEMS</title>
+    <title>Club Dashboard - FK-SCEMS</title>
     <link rel="stylesheet" href="adminStyle.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .stats-container { display: flex; gap: 20px; margin-bottom: 30px; }
+        .stat-card { flex: 1; background: #fff; padding: 20px; border-radius: 8px; border: 1px solid #eee; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .stat-card h3 { margin: 0 0 10px 0; color: #666; font-size: 14px; }
+        .stat-card p { margin: 0; font-size: 24px; font-weight: bold; color: #333; }
+        .charts-wrapper { display: flex; gap: 20px; }
+        .chart-box { flex: 1; background: #fff; padding: 20px; border-radius: 8px; border: 1px solid #eee; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+    </style>
 </head>
 
 <body class="dashboard-body">
@@ -80,13 +126,13 @@ $result = mysqli_query($conn, $query);
 
     <main class="main-content">
 
-        <h2>Manage Faculty Clubs</h2>
+        <h2>Club Dashboard</h2>
 
         <div class="module-actions">
-            <a href="clubDashboard.php" class="module-btn" style="background: #f4f4f4; color: #333; border: 1px solid #ccc;">
+            <a href="clubDashboard.php" class="module-btn">
                 <i class="fas fa-chart-pie"></i> Dashboard
             </a>
-            <a href="manageFacultyClubs.php" class="module-btn">
+            <a href="manageFacultyClubs.php" class="module-btn" style="background: #f4f4f4; color: #333; border: 1px solid #ccc;">
                 <i class="fas fa-building"></i> Manage Faculty Clubs
             </a>
             <a href="manageClubCommittees.php" class="module-btn" style="background: #f4f4f4; color: #333; border: 1px solid #ccc;">
@@ -97,66 +143,69 @@ $result = mysqli_query($conn, $query);
             </a>
         </div>
 
-        <section class="filter-bar">
-            <input type="text" class="filter-input" placeholder="Search Club (ID or Name)...">
-            
-            <select class="filter-select">
-                <option value="All" selected>All Categories</option>
-                <option value="Academic">Academic</option>
-                <option value="Sports">Sports</option>
-                <option value="Culture">Culture</option>
-            </select>
-            
-            <select class="filter-select">
-                <option value="All" selected>All Status</option>
-                <option value="Active">Active</option>
-                <option value="Inactive">Inactive</option>
-            </select>
-            
-            <button class="btn btn-primary"><i class="fas fa-search"></i> Search</button>
-            <a href="createClub.php" class="btn btn-success" style="margin-left: auto;"><i class="fas fa-plus"></i> Create New Club</a>
+        <section class="stats-container">
+            <div class="stat-card">
+                <h3>Total Clubs</h3>
+                <p><?php echo $totalClubs; ?></p>
+            </div>
+            <div class="stat-card" style="border-top: 4px solid #28a745;">
+                <h3>Active Clubs</h3>
+                <p style="color: #28a745;"><?php echo $activeClubs; ?></p>
+            </div>
+            <div class="stat-card" style="border-top: 4px solid #dc3545;">
+                <h3>Inactive Clubs</h3>
+                <p style="color: #dc3545;"><?php echo $inactiveClubs; ?></p>
+            </div>
+            <div class="stat-card">
+                <h3>Total Students</h3>
+                <p><?php echo $totalStudents; ?></p>
+            </div>
         </section>
 
-        <section class="table-container">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Club ID</th>
-                        <th>Club Name</th>
-                        <th>Category</th>
-                        <th>Status</th>
-                        <th>Created Date</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php 
-                    if ($result && mysqli_num_rows($result) > 0) {
-                        while ($row = mysqli_fetch_assoc($result)) { 
-                            $statusClass = ($row['clubStatus'] === 'Active') ? 'status-active' : 'status-inactive';
-                    ?>
-                        <tr>
-                            <td><?php echo htmlspecialchars($row['clubID']); ?></td>
-                            <td><?php echo htmlspecialchars($row['clubName']); ?></td>
-                            <td><?php echo htmlspecialchars($row['clubCategory']); ?></td>
-                            <td><span class="status-badge <?php echo $statusClass; ?>"><?php echo htmlspecialchars($row['clubStatus']); ?></span></td>
-                            <td><?php echo htmlspecialchars($row['clubCreatedDate']); ?></td>
-                            <td>
-                                <a href="editClub.php?id=<?php echo $row['clubID']; ?>" class="action-link"><i class="fas fa-edit"></i> View / Edit</a>
-                            </td>
-                        </tr>
-                    <?php 
-                        }
-                    } else {
-                        echo "<tr><td colspan='6' style='text-align: center; color: #888;'>No clubs found in the database.</td></tr>";
-                    }
-                    ?>
-                </tbody>
-            </table>
+        <section class="charts-wrapper">
+            <div class="chart-box">
+                <h3>Student Analytics per Club</h3>
+                <canvas id="barChart" height="200"></canvas>
+            </div>
+            <div class="chart-box" style="max-width: 400px;">
+                <h3>Club Status Distribution</h3>
+                <canvas id="pieChart"></canvas>
+            </div>
         </section>
 
     </main>
 </div>
 
+    <script>
+        // Render Bar Chart
+        new Chart(document.getElementById('barChart'), {
+            type: 'bar',
+            data: { 
+                labels: <?php echo json_encode($labels); ?>, 
+                datasets: [{ 
+                    label: 'Students', 
+                    data: <?php echo json_encode($values); ?>, 
+                    backgroundColor: '#0056b3' 
+                }] 
+            },
+            options: {
+                responsive: true,
+                scales: { y: { beginAtZero: true } }
+            }
+        });
+
+        // Render Pie Chart
+        new Chart(document.getElementById('pieChart'), {
+            type: 'pie',
+            data: { 
+                labels: ['Active', 'Inactive'], 
+                datasets: [{ 
+                    data: [<?php echo $activeClubs; ?>, <?php echo $inactiveClubs; ?>], 
+                    backgroundColor: ['#28a745', '#dc3545'] 
+                }] 
+            },
+            options: { responsive: true }
+        });
+    </script>
 </body>
 </html>

@@ -4,6 +4,8 @@
 CREATE DATABASE IF NOT EXISTS `fkscems` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
 USE `fkscems`;
 
+DROP TABLE IF EXISTS `waiting_list`;
+DROP TABLE IF EXISTS `event_registration`;
 DROP TABLE IF EXISTS `event`;
 DROP TABLE IF EXISTS `user`;
 
@@ -22,7 +24,8 @@ CREATE TABLE `user` (
 
 -- Password: password123
 INSERT INTO `user` (`username`, `password`, `name`, `email`, `phoneNumber`, `profilePhoto`, `userType`) VALUES
-('fkscems01', '$2y$10$OBiPNAADSCRYDI3/8LYw.etWF5ZoJNynStJGsmol8lP1Ddp1LA0GG', 'Ahmad bin Abdullah', 'ahmad.abdullah@umpsa.edu.my', '0123456789', NULL, 'committee');
+('fkscems01', '$2y$10$OBiPNAADSCRYDI3/8LYw.etWF5ZoJNynStJGsmol8lP1Ddp1LA0GG', 'Ahmad bin Abdullah', 'ahmad.abdullah@umpsa.edu.my', '0123456789', NULL, 'committee'),
+('student01', '$2y$10$OBiPNAADSCRYDI3/8LYw.etWF5ZoJNynStJGsmol8lP1Ddp1LA0GG', 'Nur Zuhairah', 'nur.zuhairah@student.umpsa.edu.my', '0198765432', NULL, 'student');
 
 CREATE TABLE `event` (
   `eventID` int(11) NOT NULL AUTO_INCREMENT,
@@ -52,4 +55,29 @@ CREATE TABLE `event` (
   PRIMARY KEY (`eventID`),
   KEY `idx_event_createdBy` (`createdBy`),
   KEY `idx_event_status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+CREATE TABLE `event_registration` (
+  `registrationID` int(11) NOT NULL AUTO_INCREMENT,
+  `eventID` int(11) NOT NULL,
+  `userID` int(11) NOT NULL,
+  `registrationDate` datetime NOT NULL DEFAULT current_timestamp(),
+  `registrationStatus` varchar(100) NOT NULL DEFAULT 'registered',
+  `confirmationStatus` varchar(100) NOT NULL DEFAULT 'pending',
+  PRIMARY KEY (`registrationID`),
+  UNIQUE KEY `uniq_event_user` (`eventID`, `userID`),
+  KEY `idx_reg_event` (`eventID`),
+  KEY `idx_reg_user` (`userID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+CREATE TABLE `waiting_list` (
+  `waitingID` int(11) NOT NULL AUTO_INCREMENT,
+  `eventID` int(11) NOT NULL,
+  `userID` int(11) NOT NULL,
+  `requestDate` datetime NOT NULL DEFAULT current_timestamp(),
+  `waitingStatus` varchar(20) NOT NULL DEFAULT 'waiting',
+  PRIMARY KEY (`waitingID`),
+  UNIQUE KEY `uniq_wait_event_user` (`eventID`, `userID`),
+  KEY `idx_wait_event` (`eventID`),
+  KEY `idx_wait_user` (`userID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;

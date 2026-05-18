@@ -11,7 +11,6 @@ if (!isset($_SESSION['userID']) || $_SESSION['type'] !== 'admin') {
 $query = "SELECT clubID, clubName, clubCategory, clubStatus, clubCreatedDate FROM Club ORDER BY clubID DESC";
 $result = mysqli_query($conn, $query);
 ?>
-
 <!DOCTYPE html>
 <html lang="ms">
 <head>
@@ -21,7 +20,6 @@ $result = mysqli_query($conn, $query);
     <link rel="stylesheet" href="adminStyle.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
-
 <body class="dashboard-body">
 
 <header class="main-header">

@@ -62,55 +62,83 @@ if ($tableCheck && mysqli_num_rows($tableCheck) > 0) {
     $regCheck = mysqli_query($conn, "SHOW TABLES LIKE 'event_registration'");
     $hasRegTable = $regCheck && mysqli_num_rows($regCheck) > 0;
 
-    $where = "WHERE e.createdBy = ?";
-    $types = 'i';
-    $params = [$userID];
+    /*$where = "WHERE e.createdBy = ?";*/
+    // Define the base WHERE clause
+    // Based on your schema, it looks like you might need to track who created the event.
+    // If you don't have a 'createdBy' column yet, use '1=1' to allow easy appending.
+    // 1. Prepare the WHERE clause
+$where = "WHERE 1=1"; 
+$types = '';
+$params = [];
 
-    if ($search !== '') {
-        $where .= ' AND e.eventTitle LIKE ?';
-        $types .= 's';
-        $params[] = '%' . $search . '%';
-    }
+if ($search !== '') {
+    $where .= ' AND e.eventTitle LIKE ?';
+    $types .= 's';
+    $params[] = '%' . $search . '%';
+}
 
-    $where .= statusFilterSql($statusFilter);
+// Add the status filter logic
+$where .= statusFilterSql($statusFilter);
 
-    $countSql = "SELECT COUNT(*) AS total FROM event e {$where}";
-    $countStmt = mysqli_prepare($conn, $countSql);
-    if ($countStmt) {
+// 2. Get Total Count for Pagination
+$countSql = "SELECT COUNT(*) AS total FROM event e $where";
+$countStmt = mysqli_prepare($conn, $countSql);
+
+if ($countStmt) {
+    if (!empty($params)) {
         mysqli_stmt_bind_param($countStmt, $types, ...$params);
-        mysqli_stmt_execute($countStmt);
-        $countRow = mysqli_stmt_get_result($countStmt)->fetch_assoc();
-        $totalEvents = (int) ($countRow['total'] ?? 0);
-        mysqli_stmt_close($countStmt);
     }
+    mysqli_stmt_execute($countStmt);
+    $countResult = mysqli_stmt_get_result($countStmt);
+    $countRow = mysqli_fetch_assoc($countResult);
+    $totalEvents = (int) ($countRow['total'] ?? 0);
+    
+    // CRITICAL: Free the result and close before the next query
+    mysqli_stmt_free_result($countStmt);
+    mysqli_stmt_close($countStmt);
+}
 
-    $offset = ($page - 1) * $perPage;
-    $regSub = $hasRegTable
-        ? '(SELECT COUNT(*) FROM event_registration er WHERE er.eventID = e.eventID)'
-        : '0';
+// 3. Fetch the List of Events
+$offset = ($page - 1) * $perPage;
+$regSub = $hasRegTable
+    ? "(SELECT COUNT(*) FROM event_registration er WHERE er.eventID = e.eventID)"
+    : "0";
 
-    $listSql = "
-        SELECT e.eventID, e.eventTitle, e.eventDate, e.venue, e.locationRoom,
-               e.maxParticipants, e.status, {$regSub} AS regCount
-        FROM event e
-        {$where}
-        ORDER BY e.createdAt DESC
-        LIMIT ? OFFSET ?
-    ";
+$listSql = "
+    SELECT 
+        e.eventID, 
+        e.eventTitle, 
+        e.eventDate, 
+        e.eventTime,
+        e.eventVenue, 
+        e.maxParticipations, 
+        e.eventStatus, 
+        {$regSub} AS regCount
+    FROM event e
+    $where
+    ORDER BY e.eventID DESC
+    LIMIT ? OFFSET ?
+";
 
-    $listStmt = mysqli_prepare($conn, $listSql);
-    if ($listStmt) {
-        $listTypes = $types . 'ii';
-        $listParams = array_merge($params, [$perPage, $offset]);
-        mysqli_stmt_bind_param($listStmt, $listTypes, ...$listParams);
-        mysqli_stmt_execute($listStmt);
+$listStmt = mysqli_prepare($conn, $listSql);
+
+if ($listStmt) {
+    $listTypes = $types . 'ii';
+    $listParams = array_merge($params, [(int)$perPage, (int)$offset]);
+    
+    mysqli_stmt_bind_param($listStmt, $listTypes, ...$listParams);
+    
+    if (mysqli_stmt_execute($listStmt)) {
         $result = mysqli_stmt_get_result($listStmt);
         while ($row = mysqli_fetch_assoc($result)) {
             $events[] = $row;
         }
-        mysqli_stmt_close($listStmt);
+        // Free result again
+        mysqli_stmt_free_result($listStmt);
     }
-}
+    mysqli_stmt_close($listStmt);
+}}
+
 
 $totalPages = max(1, (int) ceil($totalEvents / $perPage));
 if ($page > $totalPages) {
@@ -264,7 +292,7 @@ $rangeEnd = min($page * $perPage, $totalEvents);
         <div class="flex items-center gap-6">
             <div class="text-right hidden md:block">
                 <p class="text-label-lg font-label-lg text-on-surface"><?php echo $userName; ?></p>
-                <p class="text-label-sm font-label-sm text-on-surface-variant">Committee Club</p>
+                <p class="text-label-sm font-label-sm text-on-surface-variant">Commitee Club</p>
             </div>
             <div class="flex items-center gap-4">
                 <span class="material-symbols-outlined text-primary cursor-pointer text-[28px]">account_circle</span>
@@ -282,12 +310,12 @@ $rangeEnd = min($page * $perPage, $totalEvents);
                     <span class="material-symbols-outlined">dashboard</span>
                     <span class="text-label-lg font-label-lg">Dashboard</span>
                 </a>
-                <a class="bg-surface-container-high text-primary border-l-4 border-primary px-4 py-3 flex items-center gap-3 font-bold"
+                <a class="text-on-surface-variant px-4 py-3 flex items-center gap-3 hover:bg-surface-container transition-all rounded-lg group"
                     href="manageEvent.php">
-                    <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">calendar_today</span>
+                    <span class="material-symbols-outlined">calendar_today</span>
                     <span class="text-label-lg font-label-lg">Event</span>
                 </a>
-                <a class="text-on-surface-variant px-4 py-3 flex items-center gap-3 hover:bg-surface-container transition-all rounded-lg group"
+                <a class="px-4 py-3 flex items-center gap-3 text-on-surface-variant hover:bg-surface-container transition-all rounded-lg group"
                     href="#">
                     <span class="material-symbols-outlined">assignment_ind</span>
                     <span class="text-label-lg font-label-lg">My Registrations</span>
@@ -327,14 +355,14 @@ $rangeEnd = min($page * $perPage, $totalEvents);
 
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-md mb-gutter">
                 <h1 class="font-display-lg text-display-lg text-on-surface">Committee Event Management</h1>
-                <a href="createEvent.php"
-                    class="bg-primary text-on-primary px-lg py-sm rounded-lg flex items-center justify-center gap-xs font-label-lg hover:brightness-110 shadow-sm transition-all active:scale-95">
+                <button type="button" onclick="window.location.href='createEvent.php'"
+                    class="bg-primary text-on-primary px-lg py-sm rounded-lg flex items-center gap-xs font-label-lg hover:brightness-110 shadow-sm transition-all active:scale-95">
                     <span class="material-symbols-outlined">add</span>
                     Add New Event
-                </a>
+                </button>
             </div>
 
-            <form method="GET" action="manageEvent.php" class="bg-surface-container-lowest border border-outline-variant p-gutter rounded-xl shadow-sm">
+            <form method="GET" action="manageEvent.php" id="eventFilterForm" class="bg-surface-container-lowest border border-outline-variant p-gutter rounded-xl shadow-sm">
                 <div class="grid grid-cols-1 md:grid-cols-12 gap-md items-end">
                     <div class="md:col-span-5 flex flex-col gap-xs">
                         <label class="font-label-lg text-on-surface-variant" for="search">Search Event</label>
@@ -356,11 +384,9 @@ $rangeEnd = min($page * $perPage, $totalEvents);
                             <option value="cancelled" <?php echo $statusFilter === 'cancelled' ? 'selected' : ''; ?>>Cancelled</option>
                         </select>
                     </div>
-                    <div class="md:col-span-3 flex gap-sm">
-                        <button type="submit"
-                            class="flex-1 px-md py-sm bg-primary text-on-primary rounded-lg font-label-lg hover:bg-primary-container transition-colors">Apply</button>
+                    <div class="md:col-span-3">
                         <a href="manageEvent.php"
-                            class="flex-1 px-md py-sm border border-outline-variant rounded-lg font-label-lg text-primary hover:bg-surface-container-low transition-colors text-center leading-[2.5rem]">Clear Filters</a>
+                            class="block w-full px-md py-sm border border-outline-variant rounded-lg font-label-lg text-primary hover:bg-surface-container-low transition-colors text-center">Clear Filters</a>
                     </div>
                 </div>
             </form>
@@ -419,12 +445,14 @@ $rangeEnd = min($page * $perPage, $totalEvents);
                                             <div class="flex items-center justify-end gap-xs">
                                                 <button type="button"
                                                     class="p-xs hover:bg-surface-variant rounded-lg text-primary transition-colors"
-                                                    title="View event (coming soon)" disabled>
+                                                    title="View event"
+                                                    onclick="window.location.href='viewEvent.php?id=<?php echo (int) $event['eventID']; ?>'">
                                                     <span class="material-symbols-outlined">visibility</span>
                                                 </button>
                                                 <button type="button"
-                                                    class="p-xs hover:bg-surface-variant rounded-lg text-outline transition-colors opacity-50 cursor-not-allowed"
-                                                    title="Edit event (coming soon)" disabled>
+                                                    class="p-xs hover:bg-surface-variant rounded-lg text-outline transition-colors"
+                                                    title="Edit event"
+                                                    onclick="window.location.href='editEvent.php?id=<?php echo (int) $event['eventID']; ?>'">
                                                     <span class="material-symbols-outlined">edit</span>
                                                 </button>
                                             </div>
@@ -436,12 +464,15 @@ $rangeEnd = min($page * $perPage, $totalEvents);
                     </table>
                 </div>
 
-                <?php if ($totalEvents > 0): ?>
-                    <div class="p-md bg-surface-container-low border-t border-outline-variant flex flex-col sm:flex-row items-center justify-between gap-md">
+                <div class="p-md bg-surface-container-low border-t border-outline-variant flex items-center justify-between">
                         <span class="font-body-md text-on-surface-variant">
-                            Showing <?php echo $rangeStart; ?>-<?php echo $rangeEnd; ?> of <?php echo $totalEvents; ?> event<?php echo $totalEvents === 1 ? '' : 's'; ?>
+                            <?php if ($totalEvents > 0): ?>
+                                Showing <?php echo $rangeStart; ?>-<?php echo $rangeEnd; ?> of <?php echo $totalEvents; ?> event<?php echo $totalEvents === 1 ? '' : 's'; ?>
+                            <?php else: ?>
+                                Showing 0 events
+                            <?php endif; ?>
                         </span>
-                        <?php if ($totalPages > 1): ?>
+                        <?php if ($totalEvents > 0 && $totalPages > 1): ?>
                             <div class="flex items-center gap-xs">
                                 <?php if ($page > 1): ?>
                                     <a href="<?php echo htmlspecialchars(buildQueryUrl(['page' => $page - 1])); ?>"
@@ -496,12 +527,44 @@ $rangeEnd = min($page * $perPage, $totalEvents);
                                     </span>
                                 <?php endif; ?>
                             </div>
+                        <?php elseif ($totalEvents > 0): ?>
+                            <div class="flex items-center gap-xs">
+                                <button type="button" class="w-8 h-8 flex items-center justify-center rounded-lg border border-outline-variant text-outline opacity-40 cursor-not-allowed">
+                                    <span class="material-symbols-outlined">chevron_left</span>
+                                </button>
+                                <span class="w-8 h-8 flex items-center justify-center rounded-lg bg-primary text-on-primary font-label-lg">1</span>
+                                <button type="button" class="w-8 h-8 flex items-center justify-center rounded-lg border border-outline-variant text-outline opacity-40 cursor-not-allowed">
+                                    <span class="material-symbols-outlined">chevron_right</span>
+                                </button>
+                            </div>
                         <?php endif; ?>
-                    </div>
-                <?php endif; ?>
+                </div>
             </div>
         </main>
     </div>
+
+    <script>
+        (function () {
+            const form = document.getElementById('eventFilterForm');
+            const status = document.getElementById('status');
+            const search = document.getElementById('search');
+
+            if (status && form) {
+                status.addEventListener('change', function () {
+                    form.submit();
+                });
+            }
+
+            if (search && form) {
+                search.addEventListener('keydown', function (e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        form.submit();
+                    }
+                });
+            }
+        })();
+    </script>
 
 </body>
 

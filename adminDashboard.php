@@ -3,12 +3,12 @@ session_start();
 include 'fkscems.php';
 
 if (!isset($_SESSION['userID']) || $_SESSION['type'] !== 'admin') {
-    header("Location: login.php"); 
+    header("Location: login.php");
     exit();
 }
 
 /* ===============================
-   FETCH MAIN DASHBOARD DATA
+    FETCH MAIN DASHBOARD DATA
 ================================ */
 
 // 1. Total Registered Students
@@ -22,7 +22,6 @@ $clubResult = mysqli_query($conn, $clubQuery);
 $activeClubs = ($clubResult && $row = mysqli_fetch_assoc($clubResult)) ? $row['totalClubs'] : 0;
 
 // 3. Total Upcoming Events
-// Checks if the event table exists to avoid errors if you haven't created it yet
 $eventCheck = mysqli_query($conn, "SHOW TABLES LIKE 'event'");
 $upcomingEvents = 0;
 if (mysqli_num_rows($eventCheck) > 0) {
@@ -46,16 +45,53 @@ $recentUsersResult = mysqli_query($conn, $recentUsersQuery);
 
     <link rel="stylesheet" href="adminStyle.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
+
     <style>
-        .insight-cards { display: flex; gap: 20px; margin-bottom: 30px; }
-        .card { background: white; padding: 25px; border-radius: 12px; flex: 1; box-shadow: 0 4px 6px rgba(0,0,0,0.05); text-align: center; border-top: 4px solid #008b8b; }
-        .card-title { display: block; color: #666; font-size: 1rem; margin-bottom: 10px; font-weight: 600; }
-        .card-value { font-size: 2.5rem; font-weight: bold; color: #333; }
-        .charts-grid { display: flex; gap: 20px; margin-bottom: 30px; }
-        .chart-box { background: white; padding: 20px; border-radius: 12px; flex: 1; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .insight-cards {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            flex: 1;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            text-align: center;
+            border-top: 4px solid #008b8b;
+        }
+
+        .card-title {
+            display: block;
+            color: #666;
+            font-size: 1rem;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .card-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .charts-grid {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .chart-box {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            flex: 1;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
     </style>
 </head>
 
@@ -149,11 +185,40 @@ $recentUsersResult = mysqli_query($conn, $recentUsersQuery);
                         </thead>
 
                         <tbody>
-                            <?php 
+                            <?php
                             if ($recentUsersResult && mysqli_num_rows($recentUsersResult) > 0) {
                                 while ($row = mysqli_fetch_assoc($recentUsersResult)) {
                             ?>
+                                    <tr>
+                                        <td><?php echo htmlspecialchars($row['userID']); ?></td>
+                                        <td><?php echo htmlspecialchars($row['name']); ?></td>
+                                        <td>
+                                            <span style="background: #e2e8f0; padding: 4px 10px; border-radius: 4px; font-size: 0.85rem; font-weight: bold; text-transform: uppercase;">
+                                                <?php echo htmlspecialchars($row['userType']); ?>
+                                            </span>
+                                        </td>
+                                        <td><span style="color: green; font-weight: bold;">Active</span></td>
+                                    </tr>
+                                <?php
+                                } // Penutup gelung while
+                            } else {
+                                ?>
                                 <tr>
-                                    <td><?php echo htmlspecialchars($row['userID']); ?></td>
-                                    <td><?php echo htmlspecialchars($row['name']); ?></td>
-                                    <td><span style="background: #e2e8f0; padding: 4px 10px; border-radius: 4px; font-size: 0.85rem; font-weight: bold; text-transform: uppercase;"><?php echo htmlspecialchars($row['userType']); ?></span>
+                                    <td colspan="4" style="text-align: center;">No recent registrations found.</td>
+                                </tr>
+                            <?php
+                            } // Penutup syarat if
+                            ?>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        // Sediakan carta anda di sini pada masa hadapan jika perlu
+    </script>
+</body>
+
+</html>
