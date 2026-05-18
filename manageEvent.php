@@ -1,6 +1,7 @@
 <?php
 session_start();
 include 'fkscems.php';
+require_once __DIR__ . '/includes/event_schema.php';
 
 if (!isset($_SESSION['userID']) || $_SESSION['type'] !== 'committee') {
     header('Location: login.php');
@@ -14,44 +15,7 @@ $search = trim($_GET['search'] ?? '');
 $statusFilter = trim($_GET['status'] ?? 'all');
 $page = max(1, (int) ($_GET['page'] ?? 1));
 $perPage = 5;
-
-function eventDisplayStatus(string $status, string $eventDate): array
-{
-    $today = date('Y-m-d');
-    if ($status === 'cancelled') {
-        return ['label' => 'Cancelled', 'class' => 'bg-secondary-container text-on-secondary-container'];
-    }
-    if ($status === 'draft' || $status === 'pending_approval') {
-        return ['label' => 'Draft', 'class' => 'bg-surface-container-high text-on-surface-variant'];
-    }
-    if ($status === 'rejected') {
-        return ['label' => 'Closed', 'class' => 'bg-error-container text-on-error-container'];
-    }
-    if ($status === 'approved') {
-        if ($eventDate < $today) {
-            return ['label' => 'Closed', 'class' => 'bg-error-container text-on-error-container'];
-        }
-        return ['label' => 'Active', 'class' => 'bg-green-100 text-green-700'];
-    }
-    return ['label' => ucwords(str_replace('_', ' ', $status)), 'class' => 'bg-surface-container-high text-on-surface-variant'];
-}
-
-function statusFilterSql(string $filter): string
-{
-    $today = date('Y-m-d');
-    switch ($filter) {
-        case 'active':
-            return " AND e.eventStatus = 'approved' AND e.eventDate >= '{$today}'";
-        case 'draft':
-            return " AND e.eventStatus IN ('draft', 'pending_approval')";
-        case 'closed':
-            return " AND (e.eventStatus = 'rejected' OR (e.eventStatus = 'approved' AND e.eventDate < '{$today}'))";
-        case 'cancelled':
-            return " AND e.eventStatus = 'cancelled'";
-        default:
-            return '';
-    }
-}
+$legacySchema = eventUsesLegacySchema($conn);
 
 $events = [];
 $totalEvents = 0;
@@ -62,7 +26,7 @@ if ($tableCheck && mysqli_num_rows($tableCheck) > 0) {
     $regCheck = mysqli_query($conn, "SHOW TABLES LIKE 'event_registration'");
     $hasRegTable = $regCheck && mysqli_num_rows($regCheck) > 0;
 
-    $where = "WHERE 1=1"; 
+    $where = 'WHERE 1=1';
     $types = '';
     $params = [];
 
@@ -72,61 +36,76 @@ if ($tableCheck && mysqli_num_rows($tableCheck) > 0) {
         $params[] = '%' . $search . '%';
     }
 
-    $where .= statusFilterSql($statusFilter);
+    $where .= committeeStatusFilterSql($conn, $statusFilter);
 
-    // Get Total Count for Pagination
-    $countSql = "SELECT COUNT(*) AS total FROM event e $where";
+    $countSql = "SELECT COUNT(*) AS total FROM event e {$where}";
     $countStmt = mysqli_prepare($conn, $countSql);
 
     if ($countStmt) {
-        if (!empty($params)) {
+        if ($types !== '') {
             mysqli_stmt_bind_param($countStmt, $types, ...$params);
         }
         mysqli_stmt_execute($countStmt);
-        $countResult = mysqli_stmt_get_result($countStmt);
-        $countRow = mysqli_fetch_assoc($countResult);
+        $countRow = mysqli_stmt_get_result($countStmt)->fetch_assoc();
         $totalEvents = (int) ($countRow['total'] ?? 0);
-        
-        mysqli_stmt_free_result($countStmt);
         mysqli_stmt_close($countStmt);
     }
 
-    // Fetch the List of Events
     $offset = ($page - 1) * $perPage;
     $regSub = $hasRegTable
-        ? "(SELECT COUNT(*) FROM event_registration er WHERE er.eventID = e.eventID)"
-        : "0";
+        ? '(SELECT COUNT(*) FROM event_registration er WHERE er.eventID = e.eventID)'
+        : '0';
 
-    $listSql = "
-        SELECT 
-            e.eventID, 
-            e.eventTitle, 
-            e.eventDate, 
-            e.eventTime,
-            e.eventVenue, 
-            e.maxParticipations, 
-            e.eventStatus, 
-            {$regSub} AS regCount
-        FROM event e
-        $where
-        ORDER BY e.eventID DESC
-        LIMIT ? OFFSET ?
-    ";
+    if ($legacySchema) {
+        $listSql = "
+            SELECT
+                e.eventID,
+                e.eventTitle,
+                e.eventDate,
+                e.eventTime,
+                e.eventVenue,
+                e.maxParticipations,
+                e.eventStatus,
+                {$regSub} AS regCount
+            FROM event e
+            {$where}
+            ORDER BY e.eventID DESC
+            LIMIT ? OFFSET ?
+        ";
+    } else {
+        $listSql = "
+            SELECT
+                e.eventID,
+                e.eventTitle,
+                e.eventDate,
+                e.startTime,
+                e.venue,
+                e.maxParticipants,
+                e.status,
+                {$regSub} AS regCount
+            FROM event e
+            {$where}
+            ORDER BY e.eventID DESC
+            LIMIT ? OFFSET ?
+        ";
+    }
 
     $listStmt = mysqli_prepare($conn, $listSql);
 
     if ($listStmt) {
         $listTypes = $types . 'ii';
-        $listParams = array_merge($params, [(int)$perPage, (int)$offset]);
-        
+        $listParams = array_merge($params, [(int) $perPage, (int) $offset]);
+
         mysqli_stmt_bind_param($listStmt, $listTypes, ...$listParams);
-        
+
         if (mysqli_stmt_execute($listStmt)) {
             $result = mysqli_stmt_get_result($listStmt);
-            while ($row = mysqli_fetch_assoc($result)) {
-                $events[] = $row;
+            if ($result) {
+                while ($row = mysqli_fetch_assoc($result)) {
+                    $events[] = normalizeCommitteeEventListRow($conn, $row);
+                }
+                mysqli_free_result($result);
             }
-            mysqli_stmt_free_result($listStmt);
         }
         mysqli_stmt_close($listStmt);
     }
@@ -410,7 +389,7 @@ $rangeEnd = min($page * $perPage, $totalEvents);
                             <?php else: ?>
                                 <?php foreach ($events as $event): ?>
                                     <?php
-                                    $badge = eventDisplayStatus($event['eventStatus'], $event['eventDate']);
+                                    $badge = committeeEventDisplayStatus($event['eventStatus'], $event['eventDate']);
                                     $venueDisplay = htmlspecialchars($event['eventVenue']);
                                     
                                     $max = $event['maxParticipations'];

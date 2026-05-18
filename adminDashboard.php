@@ -1,11 +1,10 @@
 <?php
 session_start();
 include 'fkscems.php';
+require_once __DIR__ . '/includes/event_schema.php';
+require_once __DIR__ . '/includes/admin_layout.php';
 
-if (!isset($_SESSION['userID']) || $_SESSION['type'] !== 'admin') {
-    header("Location: login.php");
-    exit();
-}
+admin_require_auth();
 
 /* ===============================
     FETCH MAIN DASHBOARD DATA
@@ -21,33 +20,32 @@ $clubQuery = "SELECT COUNT(*) as totalClubs FROM club WHERE clubStatus = 'Active
 $clubResult = mysqli_query($conn, $clubQuery);
 $activeClubs = ($clubResult && $row = mysqli_fetch_assoc($clubResult)) ? $row['totalClubs'] : 0;
 
-// 3. Total Upcoming Events
+// 3. Total Upcoming Events & pending approval
 $eventCheck = mysqli_query($conn, "SHOW TABLES LIKE 'event'");
 $upcomingEvents = 0;
-if (mysqli_num_rows($eventCheck) > 0) {
+$pendingEvents = 0;
+if ($eventCheck && mysqli_num_rows($eventCheck) > 0) {
     $eventQuery = "SELECT COUNT(*) as upcoming FROM event WHERE eventDate >= CURDATE()";
     $eventResult = mysqli_query($conn, $eventQuery);
-    $upcomingEvents = ($eventResult && $row = mysqli_fetch_assoc($eventResult)) ? $row['upcoming'] : 0;
+    $upcomingEvents = ($eventResult && $row = mysqli_fetch_assoc($eventResult)) ? (int) $row['upcoming'] : 0;
+
+    $legacy = eventUsesLegacySchema($conn);
+    $statusCol = $legacy ? 'eventStatus' : 'status';
+    $pendingWhere = $legacy
+        ? "LOWER({$statusCol}) IN ('pending', 'pending_approval')"
+        : "{$statusCol} = 'pending_approval'";
+    $pendingRes = mysqli_query($conn, "SELECT COUNT(*) AS c FROM event WHERE {$pendingWhere}");
+    if ($pendingRes && ($pr = mysqli_fetch_assoc($pendingRes))) {
+        $pendingEvents = (int) $pr['c'];
+    }
 }
 
 // 4. Recent User Registrations (Last 5)
 $recentUsersQuery = "SELECT userID, name, userType FROM user ORDER BY userID DESC LIMIT 5";
 $recentUsersResult = mysqli_query($conn, $recentUsersQuery);
+admin_page_start('Administrator Dashboard', 'dashboard');
 ?>
-
-<!DOCTYPE html>
-<html lang="ms">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard - FK-SCEMS</title>
-
-    <link rel="stylesheet" href="adminStyle.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
     <style>
         .insight-cards {
             display: flex;
@@ -152,10 +150,19 @@ $recentUsersResult = mysqli_query($conn, $recentUsersQuery);
                     <span class="card-value" style="color: #28a745;"><?php echo $activeClubs; ?></span>
                 </div>
 
-                <div class="card" style="border-top-color: #f39c12;">
-                    <span class="card-title">Upcoming Events</span>
-                    <span class="card-value" style="color: #f39c12;"><?php echo $upcomingEvents; ?></span>
-                </div>
+                <a href="adminEventManagement.php" class="card-link">
+                    <div class="card" style="border-top-color: #f39c12;">
+                        <span class="card-title">Upcoming Events</span>
+                        <span class="card-value" style="color: #f39c12;"><?php echo $upcomingEvents; ?></span>
+                        <?php if ($pendingEvents > 0): ?>
+                            <span style="display:block;margin-top:8px;font-size:0.85rem;color:#856404;font-weight:600;">
+                                <?php echo $pendingEvents; ?> pending approval — click to review
+                            </span>
+                        <?php else: ?>
+                            <span style="display:block;margin-top:8px;font-size:0.85rem;color:#666;">Manage all events</span>
+                        <?php endif; ?>
+                    </div>
+                </a>
             </div>
 
             <div class="charts-grid">
@@ -213,12 +220,5 @@ $recentUsersResult = mysqli_query($conn, $recentUsersQuery);
                     </table>
                 </div>
             </section>
-        </main>
-    </div>
 
-    <script>
-        // Sediakan carta anda di sini pada masa hadapan jika perlu
-    </script>
-</body>
-
-</html>
+<?php admin_page_end(); ?>
